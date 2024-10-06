@@ -3,6 +3,8 @@ package ru.example.zencartest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import ru.example.zencartest.navigation.RootGraph
@@ -17,9 +19,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             ZenCarTestTheme {
                 val autViewModel: AuthViewModel = hiltViewModel()
-                val authState = autViewModel.dataAuthUser
+                val authState by autViewModel.dataAuthUser.collectAsState()
                 val startDestination =
-                    if (authState.value.isUserLoggedIn)
+                    if (authState.isUserLoggedIn)
                         ScreenRouts.MainScreen.route
                     else
                         ScreenRouts.AuthGraph.route

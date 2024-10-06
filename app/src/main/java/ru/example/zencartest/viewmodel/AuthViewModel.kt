@@ -1,21 +1,13 @@
 package ru.example.zencartest.viewmodel
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ru.example.zencartest.model.AuthModel
+import ru.example.zencartest.repository.auth.AuthRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-
+    private val authRepository: AuthRepository
 ) : ViewModel() {
-
-    val dataAuthUser = mutableStateOf(
-        AuthModel(
-            id = 1,
-            isUserLoggedIn = false,
-            user = null
-        )
-    )
+    val dataAuthUser = authRepository.dataAuthState
 }
