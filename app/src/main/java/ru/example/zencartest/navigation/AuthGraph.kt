@@ -5,18 +5,18 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import ru.example.zencartest.screens.AuthScreen
+import ru.example.zencartest.viewmodel.AuthViewModel
 
-fun NavGraphBuilder.authGraph(navController: NavHostController) {
+fun NavGraphBuilder.authGraph(
+    navController: NavHostController,
+    authViewModel: AuthViewModel
+) {
     navigation(
         route = ScreenRouts.AuthGraph.route,
         startDestination = ScreenRouts.AuthScreen.route
     ) {
         composable(ScreenRouts.AuthScreen.route) {
-            AuthScreen(navigateToMainScreen = {
-                navController.navigate(ScreenRouts.MainScreen.route) {
-                    popUpTo(ScreenRouts.AuthGraph.route) { inclusive = true }
-                }
-            })
+            AuthScreen(authViewModel = authViewModel)
         }
     }
 }
