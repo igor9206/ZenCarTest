@@ -6,6 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import ru.example.zencartest.model.UserModel
 import ru.example.zencartest.repository.auth.AuthRepository
@@ -42,6 +44,13 @@ class AuthViewModel @Inject constructor(
         )
     )
         private set
+
+    private val _toastMessage = MutableStateFlow<String?>(null)
+    val toastMessage: StateFlow<String?> get() = _toastMessage
+
+    fun showToast(message: String?) {
+        _toastMessage.value = message
+    }
 
     fun toggleScreen() {
         isLoginScreen = !isLoginScreen
@@ -81,28 +90,30 @@ class AuthViewModel @Inject constructor(
     private fun singIn() = viewModelScope.launch {
         if (fields.login.isError || fields.password.isError) {
             return@launch
-        } else {
-            authRepository.signIn(
-                login = fields.login.value,
-                password = fields.password.value
-            )
+        }
+        authRepository.signIn(
+            login = fields.login.value,
+            password = fields.password.value
+        ).onFailure {
+            showToast(it.message)
         }
     }
 
     private fun register() = viewModelScope.launch {
         if (fields.login.isError || fields.birthDate.isError || fields.password.isError) {
             return@launch
-        } else {
-            authRepository.register(
-                userModel = UserModel(
-                    id = 0,
-                    login = fields.login.value,
-                    birthDate = Date(fields.birthDate.value.toLong())
-                        .toInstant()
-                        .atOffset(OffsetDateTime.now().offset),
-                    password = fields.password.value,
-                )
+        }
+        val t = authRepository.register(
+            userModel = UserModel(
+                id = 0,
+                login = fields.login.value,
+                birthDate = Date(fields.birthDate.value.toLong())
+                    .toInstant()
+                    .atOffset(OffsetDateTime.now().offset),
+                password = fields.password.value,
             )
+        ).onFailure {
+            showToast(it.message)
         }
     }
 

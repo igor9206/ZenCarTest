@@ -1,5 +1,6 @@
 package ru.example.zencartest.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -23,6 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +33,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -51,6 +55,21 @@ fun AuthScreen(
         .fillMaxWidth()
         .padding(horizontal = 16.dp, vertical = 4.dp)
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val toastMessage by authViewModel.toastMessage.collectAsState()
+
+    LaunchedEffect(toastMessage) {
+        toastMessage?.let {
+            val msg = when (it) {
+                "user already registered" -> context.getString(R.string.user_already_exist)
+                "user not found" -> context.getString(R.string.user_not_found)
+                "wrong password" -> context.getString(R.string.wrong_password)
+                else -> context.getString(R.string.unknown_error)
+            }
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            authViewModel.showToast(null)
+        }
+    }
 
     Column(
         modifier = Modifier

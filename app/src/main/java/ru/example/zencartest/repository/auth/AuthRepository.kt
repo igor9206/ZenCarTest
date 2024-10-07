@@ -7,7 +7,7 @@ import ru.example.zencartest.model.UserModel
 interface AuthRepository {
     val dataAuthState: StateFlow<AuthModel>
 
-    suspend fun register(userModel: UserModel)
-    suspend fun signIn(login: String, password: String)
+    suspend fun register(userModel: UserModel): Result<Unit>
+    suspend fun signIn(login: String, password: String): Result<Unit>
     fun logout()
 }

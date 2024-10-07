@@ -10,4 +10,8 @@
     <string name="welcome_sign_in">sign in to continue</string>
     <string name="welcome_register">register to continue</string>
     <string name="welcome">Welcome</string>
+    <string name="user_already_exist">User already exist</string>
+    <string name="user_not_found">User not found</string>
+    <string name="wrong_password">Wrong password</string>
+    <string name="unknown_error">Unkmown error</string>
 </resources>
