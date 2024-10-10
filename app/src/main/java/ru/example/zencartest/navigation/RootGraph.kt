@@ -25,6 +25,6 @@ fun RootGraph(
         startDestination = startDestination,
     ) {
         authGraph(navController, authViewModel)
-        composable(ScreenRouts.MainScreen.route) { MainScreen(authViewModel) }
+        composable(ScreenRouts.MainScreen.route) { MainScreen() }
     }
 }

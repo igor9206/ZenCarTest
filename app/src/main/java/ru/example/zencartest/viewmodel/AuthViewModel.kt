@@ -96,6 +96,8 @@ class AuthViewModel @Inject constructor(
             password = fields.password.value
         ).onFailure {
             showToast(it.message)
+        }.onSuccess {
+            resetFields()
         }
     }
 
@@ -103,7 +105,7 @@ class AuthViewModel @Inject constructor(
         if (fields.login.isError || fields.birthDate.isError || fields.password.isError) {
             return@launch
         }
-        val t = authRepository.register(
+        authRepository.register(
             userModel = UserModel(
                 id = 0,
                 login = fields.login.value,
@@ -114,6 +116,9 @@ class AuthViewModel @Inject constructor(
             )
         ).onFailure {
             showToast(it.message)
+        }.onSuccess {
+            resetFields()
+            isLoginScreen = true
         }
     }
 
@@ -159,9 +164,5 @@ class AuthViewModel @Inject constructor(
             birthDate = FieldState(),
             password = FieldState()
         )
-    }
-
-    fun logout() {
-        authRepository.logout()
     }
 }
