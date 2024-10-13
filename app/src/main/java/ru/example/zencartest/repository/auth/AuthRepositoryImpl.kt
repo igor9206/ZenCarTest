@@ -20,19 +20,19 @@ class AuthRepositoryImpl @Inject constructor(
     ): Result<Unit> = runCatching {
         return try {
             val checkUser = userDao.getByLogin(userModel.login)
-            if (checkUser == null) {
-                userDao.insert(UserEntity.toEntity(userModel))
-                authApp.setAuth(
-                    AuthModel(
-                        id = userModel.id,
-                        isUserLoggedIn = true,
-                        user = userModel
-                    )
-                )
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(AppError.UserAlreadyRegistered.message))
+            if (checkUser != null) {
+                error(AppError.UserAlreadyExist.message)
             }
+
+            userDao.insert(UserEntity.toEntity(userModel))
+            authApp.setAuth(
+                AuthModel(
+                    id = userModel.id,
+                    isUserLoggedIn = true,
+                    user = userModel
+                )
+            )
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -42,17 +42,18 @@ class AuthRepositoryImpl @Inject constructor(
         login: String,
         password: String
     ): Result<Unit> = runCatching {
-        val user = userDao.getByLogin(login)
-            ?: return Result.failure(Exception(AppError.UserNotFound.message))
-
-        return if (user.password == password) {
+        return try {
+            val user = userDao.getByLogin(login)
+            user ?: error(AppError.UserNotFound.message)
+            if (user.password != password) {
+                error(AppError.WrongPassword.message)
+            }
             authApp.setAuth(AuthModel(0, true, user.toModel()))
             Result.success(Unit)
-        } else {
-            Result.failure(Exception(AppError.WrongPassword.message))
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
-
 
     override fun logout() {
         authApp.removeAuth()

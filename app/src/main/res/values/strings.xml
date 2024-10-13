@@ -4,14 +4,24 @@
     <string name="login">Login</string>
     <string name="password">Password</string>
     <string name="birth_date">Birth date</string>
-    <string name="sign_in">Sign in</string>
+    <string name="sign_in">Sign In</string>
+    <string name="create_an_account">Create an account</string>
     <string name="already_have_account">Already have an account? Sign in</string>
-    <string name="no_account">No account? Register</string>
+    <string name="no_account">No account? Sing Up</string>
     <string name="welcome_sign_in">sign in to continue</string>
     <string name="welcome_register">register to continue</string>
     <string name="welcome">Welcome</string>
     <string name="user_already_exist">User already exist</string>
     <string name="user_not_found">User not found</string>
     <string name="wrong_password">Wrong password</string>
-    <string name="unknown_error">Unkmown error</string>
+    <string name="unknown_error">Unknown error</string>
+    <string name="empty_field">The field should not be empty</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
+    <string name="main_screen">Main Screen</string>
+    <string name="logout">Logout</string>
+    <string name="delete">Delete</string>
+    <string name="user_id">User id</string>
+    <string name="birthday">Birthday</string>
+    <string name="date_register">Date registration</string>
 </resources>

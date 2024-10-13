@@ -1,14 +1,19 @@
 package ru.example.zencartest.viewmodel
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import ru.example.zencartest.R
+import ru.example.zencartest.error.MsgError
 import ru.example.zencartest.model.UserModel
 import ru.example.zencartest.repository.auth.AuthRepository
 import java.time.OffsetDateTime
@@ -29,7 +34,9 @@ data class FieldState(
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    @ApplicationContext
+    private val context: Context
 ) : ViewModel() {
     val dataAuthUser = authRepository.dataAuthState
 
@@ -49,7 +56,14 @@ class AuthViewModel @Inject constructor(
     val toastMessage: StateFlow<String?> get() = _toastMessage
 
     fun showToast(message: String?) {
-        _toastMessage.value = message
+        val msg = when (message) {
+            MsgError.USER_ALREADY_EXIST.toString() -> context.getString(R.string.user_already_exist)
+            MsgError.USER_NOT_FOUND.toString() -> context.getString(R.string.user_not_found)
+            MsgError.PASSWORD_WRONG.toString() -> context.getString(R.string.wrong_password)
+            null -> null
+            else -> context.getString(R.string.unknown_error)
+        }
+        _toastMessage.value = msg
     }
 
     fun toggleScreen() {
@@ -78,27 +92,21 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun singInOrRegister() {
+    fun signInOrRegister() {
         checkFields()
-        if (isLoginScreen) {
-            singIn()
-        } else {
-            register()
-        }
+        if (isLoginScreen) signIn() else register()
     }
 
-    private fun singIn() = viewModelScope.launch {
+    private fun signIn() = viewModelScope.launch {
         if (fields.login.isError || fields.password.isError) {
             return@launch
         }
-        authRepository.signIn(
-            login = fields.login.value,
-            password = fields.password.value
-        ).onFailure {
-            showToast(it.message)
-        }.onSuccess {
-            resetFields()
-        }
+        authRepository.signIn(fields.login.value, fields.password.value)
+            .onSuccess {
+                delay(2000)
+                resetFields()
+            }
+            .onFailure { showToast(it.message) }
     }
 
     private fun register() = viewModelScope.launch {
@@ -106,20 +114,18 @@ class AuthViewModel @Inject constructor(
             return@launch
         }
         authRepository.register(
-            userModel = UserModel(
+            UserModel(
                 id = 0,
                 login = fields.login.value,
-                birthDate = Date(fields.birthDate.value.toLong())
-                    .toInstant()
+                birthDate = Date(fields.birthDate.value.toLong()).toInstant()
                     .atOffset(OffsetDateTime.now().offset),
                 password = fields.password.value,
             )
-        ).onFailure {
-            showToast(it.message)
-        }.onSuccess {
+        ).onSuccess {
+            delay(2000)
             resetFields()
             isLoginScreen = true
-        }
+        }.onFailure { showToast(it.message) }
     }
 
     private fun checkFields() {
@@ -133,7 +139,7 @@ class AuthViewModel @Inject constructor(
         fields = fields.copy(
             login = fields.login.copy(
                 isError = isLoginBlank,
-                errorMsg = if (isLoginBlank) "Введите логин" else ""
+                errorMsg = if (isLoginBlank) context.getString(R.string.empty_field) else ""
             )
         )
     }
@@ -143,7 +149,7 @@ class AuthViewModel @Inject constructor(
         fields = fields.copy(
             birthDate = fields.birthDate.copy(
                 isError = isBirthDateBlank,
-                errorMsg = if (isBirthDateBlank) "Введите дату рождения" else ""
+                errorMsg = if (isBirthDateBlank) context.getString(R.string.empty_field) else ""
             )
         )
     }
@@ -153,7 +159,7 @@ class AuthViewModel @Inject constructor(
         fields = fields.copy(
             password = fields.password.copy(
                 isError = isPasswordBlank,
-                errorMsg = if (isPasswordBlank) "Введите пароль" else ""
+                errorMsg = if (isPasswordBlank) context.getString(R.string.empty_field) else ""
             )
         )
     }

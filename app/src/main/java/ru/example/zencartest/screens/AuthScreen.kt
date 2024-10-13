@@ -1,15 +1,18 @@
 package ru.example.zencartest.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -19,6 +22,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,6 +37,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -51,52 +56,59 @@ import ru.example.zencartest.viewmodel.AuthViewModel
 fun AuthScreen(
     authViewModel: AuthViewModel
 ) {
-    val mainItemModifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp, vertical = 4.dp)
-    var passwordVisible by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
+    var passwordVisible by remember { mutableStateOf(false) }
+    val trailIconPass =
+        if (passwordVisible) R.drawable.ic_visibility_off_24 else R.drawable.ic_visibility_24
     val toastMessage by authViewModel.toastMessage.collectAsState()
+    val imgScreen =
+        if (authViewModel.isLoginScreen) R.drawable.ic_sign_in_24 else R.drawable.ic_sign_up_24
+    val headScreen =
+        if (authViewModel.isLoginScreen) R.string.sign_in else R.string.create_an_account
+    val textButtonSignOrRegister =
+        if (authViewModel.isLoginScreen) R.string.sign_in else R.string.register
+    val textButtonChangeScreen =
+        if (authViewModel.isLoginScreen) R.string.no_account else R.string.already_have_account
 
     LaunchedEffect(toastMessage) {
         toastMessage?.let {
-            val msg = when (it) {
-                "user already registered" -> context.getString(R.string.user_already_exist)
-                "user not found" -> context.getString(R.string.user_not_found)
-                "wrong password" -> context.getString(R.string.wrong_password)
-                else -> context.getString(R.string.unknown_error)
-            }
-            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             authViewModel.showToast(null)
         }
     }
 
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
-            .fillMaxSize()
             .imePadding()
-            .verticalScroll(rememberScrollState()),
+            .fillMaxSize()
+            .verticalScroll(scrollState),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Text(
-            modifier = mainItemModifier,
-            fontSize = 24.sp,
-            text = stringResource(R.string.welcome)
+        Image(
+            painter = painterResource(imgScreen),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.size(164.dp),
         )
 
+        Spacer(modifier = Modifier.padding(8.dp))
+
         Text(
-            modifier = mainItemModifier,
-            fontSize = 16.sp,
-            text = if (authViewModel.isLoginScreen)
-                stringResource(R.string.welcome_sign_in)
-            else
-                stringResource(R.string.welcome_register)
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 18.sp,
+            text = stringResource(headScreen)
         )
+
+        Spacer(modifier = Modifier.padding(8.dp))
 
         OutlinedTextField(
-            modifier = mainItemModifier,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             leadingIcon = {
                 Icon(
                     painter = painterResource(R.drawable.ic_person_24),
@@ -108,72 +120,73 @@ fun AuthScreen(
             label = { Text(stringResource(R.string.login)) },
             singleLine = true,
             supportingText = {
-                if (authViewModel.fields.login.isError) Text(text = authViewModel.fields.login.errorMsg)
+                if (authViewModel.fields.login.isError)
+                    Text(text = authViewModel.fields.login.errorMsg)
             },
             isError = authViewModel.fields.login.isError
         )
 
         if (!authViewModel.isLoginScreen) {
-            BirthDateField(modifier = mainItemModifier, authViewModel = authViewModel)
+            BirthDateField(authViewModel = authViewModel)
         }
 
         OutlinedTextField(
-            modifier = mainItemModifier,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
             leadingIcon = {
                 Icon(
                     painter = painterResource(R.drawable.ic_lock_24),
                     contentDescription = null
                 )
             },
-            value = authViewModel.fields.password.value,
             trailingIcon = {
-                val image = if (passwordVisible)
-                    painterResource(R.drawable.ic_visibility_off_24)
-                else
-                    painterResource(R.drawable.ic_visibility_24)
-
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(image, contentDescription = null)
+                    Icon(
+                        painter = painterResource(trailIconPass),
+                        contentDescription = null
+                    )
                 }
             },
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            value = authViewModel.fields.password.value,
             onValueChange = { authViewModel.updatePassword(it) },
             label = { Text(stringResource(R.string.password)) },
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             singleLine = true,
             supportingText = {
-                if (authViewModel.fields.password.isError) Text(text = authViewModel.fields.password.errorMsg)
+                if (authViewModel.fields.password.isError)
+                    Text(text = authViewModel.fields.password.errorMsg)
             },
             isError = authViewModel.fields.password.isError
         )
 
+        Spacer(modifier = Modifier.padding(8.dp))
+
         Button(
-            modifier = mainItemModifier,
-            onClick = { authViewModel.singInOrRegister() }
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth(),
+            onClick = { authViewModel.signInOrRegister() }
         ) {
-            Text(
-                if (authViewModel.isLoginScreen) stringResource(R.string.sign_in) else stringResource(
-                    R.string.register
-                )
-            )
+            Text(stringResource(textButtonSignOrRegister))
         }
 
+        Spacer(modifier = Modifier.padding(4.dp))
+
         TextButton(
-            modifier = mainItemModifier,
-            onClick = { authViewModel.toggleScreen() }) {
-            Text(
-                if (authViewModel.isLoginScreen)
-                    stringResource(R.string.no_account)
-                else
-                    stringResource(R.string.already_have_account)
-            )
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth(),
+            onClick = { authViewModel.toggleScreen() }
+        ) {
+            Text(stringResource(textButtonChangeScreen))
         }
     }
 }
 
 @Composable
 fun BirthDateField(
-    modifier: Modifier,
     authViewModel: AuthViewModel
 ) {
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
@@ -200,7 +213,9 @@ fun BirthDateField(
     }
 
     OutlinedTextField(
-        modifier = modifier,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.ic_calendar_month_24),
