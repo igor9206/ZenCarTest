@@ -1,11 +1,17 @@
 package ru.example.zencartest.screens
 
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,10 +19,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +49,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -79,108 +94,123 @@ fun AuthScreen(
 
     val scrollState = rememberScrollState()
 
-    Column(
-        modifier = Modifier
-            .imePadding()
-            .fillMaxSize()
-            .verticalScroll(scrollState),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        contentAlignment = Alignment.Center
     ) {
-
-        Image(
-            painter = painterResource(imgScreen),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.size(164.dp),
-        )
-
-        Spacer(modifier = Modifier.padding(8.dp))
-
-        Text(
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 18.sp,
-            text = stringResource(headScreen)
-        )
-
-        Spacer(modifier = Modifier.padding(8.dp))
-
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_person_24),
-                    contentDescription = null
-                )
-            },
-            value = authViewModel.fields.login.value,
-            onValueChange = { authViewModel.updateLogin(it) },
-            label = { Text(stringResource(R.string.login)) },
-            singleLine = true,
-            supportingText = {
-                if (authViewModel.fields.login.isError)
-                    Text(text = authViewModel.fields.login.errorMsg)
-            },
-            isError = authViewModel.fields.login.isError
-        )
-
         if (!authViewModel.isLoginScreen) {
-            BirthDateField(authViewModel = authViewModel)
+            IndeterminateCircularIndicator(authViewModel.loading)
         }
 
-        OutlinedTextField(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_lock_24),
-                    contentDescription = null
+                .imePadding()
+                .fillMaxSize()
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Image(
+                painter = painterResource(imgScreen),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .size(164.dp)
+                    .padding(top = 4.dp),
+            )
+
+            if (authViewModel.isLoginScreen) {
+                Spacer(modifier = Modifier.padding(8.dp))
+                Text(
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 18.sp,
+                    text = stringResource(headScreen)
                 )
-            },
-            trailingIcon = {
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+            }
+
+            if (!authViewModel.isLoginScreen) {
+                SelectAvatarButton(authViewModel = authViewModel)
+            }
+
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            OutlinedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                leadingIcon = {
                     Icon(
-                        painter = painterResource(trailIconPass),
+                        painter = painterResource(R.drawable.ic_person_24),
                         contentDescription = null
                     )
-                }
-            },
-            value = authViewModel.fields.password.value,
-            onValueChange = { authViewModel.updatePassword(it) },
-            label = { Text(stringResource(R.string.password)) },
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            singleLine = true,
-            supportingText = {
-                if (authViewModel.fields.password.isError)
-                    Text(text = authViewModel.fields.password.errorMsg)
-            },
-            isError = authViewModel.fields.password.isError
-        )
+                },
+                value = authViewModel.fields.login.value,
+                onValueChange = { authViewModel.updateLogin(it) },
+                label = { Text(stringResource(R.string.login)) },
+                singleLine = true,
+                supportingText = {
+                    if (authViewModel.fields.login.isError)
+                        Text(text = authViewModel.fields.login.errorMsg)
+                },
+                isError = authViewModel.fields.login.isError
+            )
 
-        Spacer(modifier = Modifier.padding(8.dp))
+            if (!authViewModel.isLoginScreen) {
+                BirthDateField(authViewModel = authViewModel)
+            }
 
-        Button(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .fillMaxWidth(),
-            onClick = { authViewModel.signInOrRegister() }
-        ) {
-            Text(stringResource(textButtonSignOrRegister))
-        }
+            OutlinedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_lock_24),
+                        contentDescription = null
+                    )
+                },
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            painter = painterResource(trailIconPass),
+                            contentDescription = null
+                        )
+                    }
+                },
+                value = authViewModel.fields.password.value,
+                onValueChange = { authViewModel.updatePassword(it) },
+                label = { Text(stringResource(R.string.password)) },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                singleLine = true,
+                supportingText = {
+                    if (authViewModel.fields.password.isError)
+                        Text(text = authViewModel.fields.password.errorMsg)
+                },
+                isError = authViewModel.fields.password.isError
+            )
 
-        Spacer(modifier = Modifier.padding(4.dp))
+            Spacer(modifier = Modifier.padding(8.dp))
 
-        TextButton(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .fillMaxWidth(),
-            onClick = { authViewModel.toggleScreen() }
-        ) {
-            Text(stringResource(textButtonChangeScreen))
+            Button(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                onClick = { authViewModel.signInOrRegister() }
+            ) {
+                Text(stringResource(textButtonSignOrRegister))
+            }
+
+            Spacer(modifier = Modifier.padding(4.dp))
+
+            TextButton(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                onClick = { authViewModel.toggleScreen() }
+            ) {
+                Text(stringResource(textButtonChangeScreen))
+            }
         }
     }
 }
@@ -276,4 +306,51 @@ fun DatePickerModal(
     ) {
         DatePicker(state = datePickerState)
     }
+}
+
+@Composable
+fun SelectAvatarButton(
+    authViewModel: AuthViewModel
+) {
+    val pickMedia =
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            authViewModel.updateAvatar(uri)
+        }
+
+    Box(
+        modifier = Modifier
+            .size(64.dp)
+            .clip(CircleShape)
+            .background(Color.Gray)
+            .clickable { pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+        contentAlignment = Alignment.Center
+    ) {
+        authViewModel.avatar?.let { img ->
+            Image(
+                bitmap = img.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            IconButton(
+                onClick = { authViewModel.updateAvatar(null) },
+                modifier = Modifier.align(Alignment.TopEnd)
+            ) {
+                Icon(Icons.Default.Close, contentDescription = null, tint = Color.White)
+            }
+        } ?: run {
+            Icon(Icons.Default.Person, contentDescription = null, tint = Color.White)
+        }
+    }
+}
+
+@Composable
+fun IndeterminateCircularIndicator(loading: Boolean) {
+    if (!loading) return
+
+    CircularProgressIndicator(
+        modifier = Modifier.width(64.dp),
+        color = MaterialTheme.colorScheme.secondary,
+        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+    )
 }

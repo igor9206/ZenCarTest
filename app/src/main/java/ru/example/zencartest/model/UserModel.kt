@@ -7,5 +7,6 @@ data class UserModel(
     val login: String,
     val birthDate: OffsetDateTime,
     val password: String,
-    val registrationDate: OffsetDateTime = OffsetDateTime.now()
+    val registrationDate: OffsetDateTime = OffsetDateTime.now(),
+    val avatarPath: String? = null
 )

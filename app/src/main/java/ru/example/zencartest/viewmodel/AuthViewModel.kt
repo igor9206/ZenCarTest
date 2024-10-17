@@ -1,8 +1,12 @@
 package ru.example.zencartest.viewmodel
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,7 +18,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import ru.example.zencartest.R
 import ru.example.zencartest.error.MsgError
-import ru.example.zencartest.model.UserModel
 import ru.example.zencartest.repository.auth.AuthRepository
 import java.time.OffsetDateTime
 import java.util.Date
@@ -38,6 +41,9 @@ class AuthViewModel @Inject constructor(
     @ApplicationContext
     private val context: Context
 ) : ViewModel() {
+    var loading by mutableStateOf(false)
+        private set
+
     val dataAuthUser = authRepository.dataAuthState
 
     var isLoginScreen by mutableStateOf(true)
@@ -52,6 +58,9 @@ class AuthViewModel @Inject constructor(
     )
         private set
 
+    var avatar by mutableStateOf<Bitmap?>(null)
+        private set
+
     private val _toastMessage = MutableStateFlow<String?>(null)
     val toastMessage: StateFlow<String?> get() = _toastMessage
 
@@ -64,6 +73,10 @@ class AuthViewModel @Inject constructor(
             else -> context.getString(R.string.unknown_error)
         }
         _toastMessage.value = msg
+    }
+
+    private fun updateLoadState(state: Boolean) {
+        loading = state
     }
 
     fun toggleScreen() {
@@ -92,6 +105,18 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun updateAvatar(uri: Uri?) {
+        if (uri == null) {
+            avatar = null
+            return
+        }
+
+        context.contentResolver.openInputStream(uri).use { inputStream ->
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            avatar = bitmap
+        }
+    }
+
     fun signInOrRegister() {
         checkFields()
         if (isLoginScreen) signIn() else register()
@@ -113,19 +138,23 @@ class AuthViewModel @Inject constructor(
         if (fields.login.isError || fields.birthDate.isError || fields.password.isError) {
             return@launch
         }
+        updateLoadState(true)
+
         authRepository.register(
-            UserModel(
-                id = 0,
-                login = fields.login.value,
-                birthDate = Date(fields.birthDate.value.toLong()).toInstant()
-                    .atOffset(OffsetDateTime.now().offset),
-                password = fields.password.value,
-            )
+            login = fields.login.value,
+            password = fields.password.value,
+            birthDate = Date(fields.birthDate.value.toLong()).toInstant()
+                .atOffset(OffsetDateTime.now().offset),
+            avatar = avatar
         ).onSuccess {
+            updateLoadState(false)
             delay(2000)
             resetFields()
             isLoginScreen = true
-        }.onFailure { showToast(it.message) }
+        }.onFailure {
+            updateLoadState(false)
+            showToast(it.message)
+        }
     }
 
     private fun checkFields() {
@@ -170,5 +199,6 @@ class AuthViewModel @Inject constructor(
             birthDate = FieldState(),
             password = FieldState()
         )
+        avatar = null
     }
 }

@@ -16,6 +16,7 @@ hiltNavigationCompose = "1.2.0"
 gson = "2.11.0"
 roomRuntime = "2.6.1"
 runtimeLivedata = "1.7.3"
+coilCompose = "2.1.0"
 
 [libraries]
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
@@ -28,6 +29,7 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

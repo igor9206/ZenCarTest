@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.map
 import ru.example.zencartest.auth.AuthApp
 import ru.example.zencartest.db.dao.UserDao
 import ru.example.zencartest.model.UserModel
+import java.io.File
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
@@ -24,5 +25,11 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun removeUser(userModel: UserModel) {
         userDao.removeById(userModel.id)
+        userModel.avatarPath?.let {
+            val file = File(it)
+            if (file.exists()) {
+                file.delete()
+            }
+        }
     }
 }
