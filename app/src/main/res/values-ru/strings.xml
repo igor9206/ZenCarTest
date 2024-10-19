@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ZenCarTest</string>
+    <string name="register">Регистрация</string>
+    <string name="login">Логин</string>
+    <string name="password">Пароль</string>
+    <string name="birth_date">Дата рождения</string>
+    <string name="sign_in">Вход</string>
+    <string name="create_an_account">Создать аккаунт</string>
+    <string name="already_have_account">У вас уже есть учетная запись? Вход</string>
+    <string name="no_account">Нет аккаунта? Зарегистрироваться</string>
+    <string name="welcome_sign_in">войдите в систему, чтобы продолжить</string>
+    <string name="welcome_register">зарегистрируйтесь, чтобы продолжить</string>
+    <string name="welcome">Добро пожаловать</string>
+    <string name="user_already_exist">Пользователь уже существует</string>
+    <string name="user_not_found">Пользователль не найден</string>
+    <string name="wrong_password">Неверный пароль</string>
+    <string name="unknown_error">Неизвестная ошибка</string>
+    <string name="empty_field">Поле не должно быть пустым</string>
+    <string name="ok">Ок</string>
+    <string name="cancel">Отменить</string>
+    <string name="main_screen">Главный экран</string>
+    <string name="logout">Выход</string>
+    <string name="delete">Удалить</string>
+    <string name="user_id">id</string>
+    <string name="birthday">День рождения</string>
+    <string name="date_register">Дата регистрации</string>
+</resources>
