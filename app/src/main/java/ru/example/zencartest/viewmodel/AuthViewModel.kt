@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,12 +21,6 @@ import ru.example.zencartest.repository.auth.AuthRepository
 import java.time.OffsetDateTime
 import java.util.Date
 import javax.inject.Inject
-
-data class AuthFields(
-    val login: FieldState,
-    val birthDate: FieldState,
-    val password: FieldState
-)
 
 data class FieldState(
     val value: String = "",
@@ -49,15 +42,12 @@ class AuthViewModel @Inject constructor(
     var isLoginScreen by mutableStateOf(true)
         private set
 
-    var fields by mutableStateOf(
-        AuthFields(
-            login = FieldState(),
-            birthDate = FieldState(),
-            password = FieldState()
-        )
-    )
+    var login by mutableStateOf(FieldState())
         private set
-
+    var birthDate by mutableStateOf(FieldState())
+        private set
+    var password by mutableStateOf(FieldState())
+        private set
     var avatar by mutableStateOf<Bitmap?>(null)
         private set
 
@@ -85,22 +75,22 @@ class AuthViewModel @Inject constructor(
     }
 
     fun updateLogin(input: String) {
-        fields = fields.copy(login = fields.login.copy(value = input))
-        if (fields.login.isError) {
+        login = login.copy(value = input)
+        if (login.isError) {
             checkFields()
         }
     }
 
     fun updateBirthDate(input: String) {
-        fields = fields.copy(birthDate = fields.birthDate.copy(value = input))
-        if (fields.birthDate.isError) {
+        birthDate = birthDate.copy(value = input)
+        if (birthDate.isError) {
             checkFields()
         }
     }
 
     fun updatePassword(input: String) {
-        fields = fields.copy(password = fields.password.copy(value = input))
-        if (fields.password.isError) {
+        password = password.copy(value = input)
+        if (password.isError) {
             checkFields()
         }
     }
@@ -123,10 +113,10 @@ class AuthViewModel @Inject constructor(
     }
 
     private fun signIn() = viewModelScope.launch {
-        if (fields.login.isError || fields.password.isError) {
+        if (login.isError || password.isError) {
             return@launch
         }
-        authRepository.signIn(fields.login.value, fields.password.value)
+        authRepository.signIn(login.value, password.value)
             .onSuccess {
                 delay(2000)
                 resetFields()
@@ -135,15 +125,15 @@ class AuthViewModel @Inject constructor(
     }
 
     private fun register() = viewModelScope.launch {
-        if (fields.login.isError || fields.birthDate.isError || fields.password.isError) {
+        if (login.isError || birthDate.isError || password.isError) {
             return@launch
         }
         updateLoadState(true)
 
         authRepository.register(
-            login = fields.login.value,
-            password = fields.password.value,
-            birthDate = Date(fields.birthDate.value.toLong()).toInstant()
+            login = login.value,
+            password = password.value,
+            birthDate = Date(birthDate.value.toLong()).toInstant()
                 .atOffset(OffsetDateTime.now().offset),
             avatar = avatar
         ).onSuccess {
@@ -164,41 +154,33 @@ class AuthViewModel @Inject constructor(
     }
 
     private fun loginIsValid() {
-        val isLoginBlank = fields.login.value.isBlank()
-        fields = fields.copy(
-            login = fields.login.copy(
-                isError = isLoginBlank,
-                errorMsg = if (isLoginBlank) context.getString(R.string.empty_field) else ""
-            )
+        val isLoginBlank = login.value.isBlank()
+        login = login.copy(
+            isError = isLoginBlank,
+            errorMsg = if (isLoginBlank) context.getString(R.string.empty_field) else ""
         )
     }
 
     private fun birthDateIsValid() {
-        val isBirthDateBlank = fields.birthDate.value.isBlank()
-        fields = fields.copy(
-            birthDate = fields.birthDate.copy(
-                isError = isBirthDateBlank,
-                errorMsg = if (isBirthDateBlank) context.getString(R.string.empty_field) else ""
-            )
+        val isBirthDateBlank = birthDate.value.isBlank()
+        birthDate = birthDate.copy(
+            isError = isBirthDateBlank,
+            errorMsg = if (isBirthDateBlank) context.getString(R.string.empty_field) else ""
         )
     }
 
     private fun passwordIsValid() {
-        val isPasswordBlank = fields.password.value.isBlank()
-        fields = fields.copy(
-            password = fields.password.copy(
-                isError = isPasswordBlank,
-                errorMsg = if (isPasswordBlank) context.getString(R.string.empty_field) else ""
-            )
+        val isPasswordBlank = password.value.isBlank()
+        password = password.copy(
+            isError = isPasswordBlank,
+            errorMsg = if (isPasswordBlank) context.getString(R.string.empty_field) else ""
         )
     }
 
     private fun resetFields() {
-        fields = AuthFields(
-            login = FieldState(),
-            birthDate = FieldState(),
-            password = FieldState()
-        )
+        login = FieldState()
+        birthDate = FieldState()
+        password = FieldState()
         avatar = null
     }
 }

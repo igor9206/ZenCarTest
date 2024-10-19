@@ -144,15 +144,15 @@ fun AuthScreen(
                         contentDescription = null
                     )
                 },
-                value = authViewModel.fields.login.value,
+                value = authViewModel.login.value,
                 onValueChange = { authViewModel.updateLogin(it) },
                 label = { Text(stringResource(R.string.login)) },
                 singleLine = true,
                 supportingText = {
-                    if (authViewModel.fields.login.isError)
-                        Text(text = authViewModel.fields.login.errorMsg)
+                    if (authViewModel.login.isError)
+                        Text(text = authViewModel.login.errorMsg)
                 },
-                isError = authViewModel.fields.login.isError
+                isError = authViewModel.login.isError
             )
 
             if (!authViewModel.isLoginScreen) {
@@ -177,17 +177,17 @@ fun AuthScreen(
                         )
                     }
                 },
-                value = authViewModel.fields.password.value,
+                value = authViewModel.password.value,
                 onValueChange = { authViewModel.updatePassword(it) },
                 label = { Text(stringResource(R.string.password)) },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 singleLine = true,
                 supportingText = {
-                    if (authViewModel.fields.password.isError)
-                        Text(text = authViewModel.fields.password.errorMsg)
+                    if (authViewModel.password.isError)
+                        Text(text = authViewModel.password.errorMsg)
                 },
-                isError = authViewModel.fields.password.isError
+                isError = authViewModel.password.isError
             )
 
             Spacer(modifier = Modifier.padding(8.dp))
@@ -252,7 +252,7 @@ fun BirthDateField(
                 contentDescription = null
             )
         },
-        value = authViewModel.fields.birthDate.value.let {
+        value = authViewModel.birthDate.value.let {
             if (it.isBlank()) "" else SdfConverter.convertMillisToDate(it.toLong())
         },
         onValueChange = { authViewModel.updateBirthDate(it) },
@@ -260,9 +260,9 @@ fun BirthDateField(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
         supportingText = {
-            if (authViewModel.fields.birthDate.isError) Text(text = authViewModel.fields.birthDate.errorMsg)
+            if (authViewModel.birthDate.isError) Text(text = authViewModel.birthDate.errorMsg)
         },
-        isError = authViewModel.fields.birthDate.isError,
+        isError = authViewModel.birthDate.isError,
         interactionSource = interactionSource,
         readOnly = true,
     )
